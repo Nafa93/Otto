@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.UI.Image;
 
 public class NewPlayerController : MonoBehaviour
 {
@@ -17,9 +18,7 @@ public class NewPlayerController : MonoBehaviour
     public float jumpValue = 0f;
     public SpriteRenderer spriteRenderer;
     public Animator animator;
-
-    public float movement;
-    public float height;
+    public Collider2D collider;
     public bool isChargingJump;
 
     void Start()
@@ -27,6 +26,7 @@ public class NewPlayerController : MonoBehaviour
         rb = gameObject.GetComponent<Rigidbody2D>();
         spriteRenderer = rb.GetComponent<SpriteRenderer>();
         animator = gameObject.GetComponent<Animator>();
+        collider = gameObject.GetComponent<Collider2D>();
         rb.freezeRotation = true;
     }
 
@@ -34,35 +34,25 @@ public class NewPlayerController : MonoBehaviour
     {
         moveInput = Input.GetAxisRaw("Horizontal");
 
-        if (moveInput > 0)
-        {
-            spriteRenderer.flipX = false;
-        }
-        else if (moveInput < 0)
-        {
-            spriteRenderer.flipX = true;
-        }
-
-        movement = moveInput * walkSpeed;
         animator.SetFloat("movement", moveInput * walkSpeed);
 
-        height = rb.velocity.y;
         animator.SetFloat("height", rb.velocity.y);
 
         isGrounded = Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.4f), 0, groundMask);
+        animator.SetBool("isGrounded", isGrounded);
 
         if (jumpValue == 0f && isGrounded)
         {
             rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
-        }
 
-        if (!isGrounded)
-        {
-            rb.sharedMaterial = bouncingMaterial;
-        }
-        else
-        {
-            rb.sharedMaterial = normalMaterial;
+            if (moveInput > 0)
+            {
+                spriteRenderer.flipX = false;
+            }
+            else if (moveInput < 0)
+            {
+                spriteRenderer.flipX = true;
+            }
         }
 
         if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
@@ -77,7 +67,7 @@ public class NewPlayerController : MonoBehaviour
             float tempX = moveInput * walkSpeed;
             float tempY = jumpValue;
             rb.velocity = new Vector2(tempX, tempY);
-            Invoke("ResetJump", 0.2f);
+            Invoke("ResetJump", 0.3f);
             isChargingJump = false;
             animator.SetBool("isChargingJump", false);
         }
@@ -91,7 +81,8 @@ public class NewPlayerController : MonoBehaviour
         {
             if (isGrounded)
             {
-                rb.velocity = new Vector2(moveInput * walkSpeed, jumpValue);
+                float maxValue = Mathf.Max(jumpValue, 10f);
+                rb.velocity = new Vector2(moveInput * walkSpeed, maxValue);
                 jumpValue = 0f;
             }
             canJump = true;
@@ -99,18 +90,30 @@ public class NewPlayerController : MonoBehaviour
             animator.SetBool("isChargingJump", false);
         }
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1f);
+
+        float halfSpriteWidth = collider.bounds.size.x / 2;
+
+        Vector3 leftPosition = new Vector3(transform.position.x - halfSpriteWidth, transform.position.y, transform.position.z);
+        Vector3 rightPosition = new Vector3(transform.position.x + halfSpriteWidth, transform.position.y, transform.position.z);
+
+        RaycastHit2D centerHit = Physics2D.Raycast(transform.position, Vector2.down, 1.2f);
+        RaycastHit2D leftHit = Physics2D.Raycast(leftPosition, Vector2.down, 1.2f);
+        RaycastHit2D rightHit = Physics2D.Raycast(rightPosition, Vector2.down, 1.2f);
+
+        // Draw the ray in the Scene view
+
+        Debug.DrawRay(transform.position, Vector2.down * 1.2f, Color.red);
+        Debug.DrawRay(leftPosition, Vector2.down * 1.2f, Color.red);
+        Debug.DrawRay(rightPosition, Vector2.down * 1.2f, Color.red);
 
         // Check if the ray hit anything (e.g., ground)
-        if (hit.collider != null)
+        if (centerHit.collider != null || leftHit.collider != null || rightHit.collider != null)
         {
             rb.sharedMaterial = normalMaterial;
-            Debug.Log("Object is above the ground, distance: " + hit.distance);
         }
         else
         {
             rb.sharedMaterial = bouncingMaterial;
-            Debug.Log("No ground detected within the distance");
         }
     }
 
@@ -118,6 +121,8 @@ public class NewPlayerController : MonoBehaviour
     {
         canJump = false;
         jumpValue = 0f;
+        isChargingJump = false;
+        animator.SetBool("isChargingJump", false);
     }
 
     private void OnDrawGizmosSelected()
