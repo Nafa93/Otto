@@ -18,8 +18,8 @@ public class NewPlayerController : MonoBehaviour
     public float jumpValue = 0f;
     public SpriteRenderer spriteRenderer;
     public Animator animator;
-    public Collider2D collider;
-    public bool isChargingJump;
+    public new Collider2D collider;
+    public bool isSliding;
 
     void Start()
     {
@@ -34,14 +34,20 @@ public class NewPlayerController : MonoBehaviour
     {
         moveInput = Input.GetAxisRaw("Horizontal");
 
+        isGrounded = IsGrounded();
+
         animator.SetFloat("movement", moveInput * walkSpeed);
 
         animator.SetFloat("height", rb.velocity.y);
 
-        isGrounded = Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.4f), 0, groundMask);
         animator.SetBool("isGrounded", isGrounded);
 
-        if (jumpValue == 0f && isGrounded)
+        if (isGrounded && isSliding)
+        {
+            StopSliding();
+        }
+
+        if (jumpValue == 0f && isGrounded && !isSliding)
         {
             rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
 
@@ -57,18 +63,16 @@ public class NewPlayerController : MonoBehaviour
 
         if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
         {
-            jumpValue += 0.1f;
-            isChargingJump = true;
+            jumpValue += 0.3f;
             animator.SetBool("isChargingJump", true);
         }
 
-        if (jumpValue >= 20f && isGrounded)
+        if (jumpValue >= 22f && isGrounded)
         {
             float tempX = moveInput * walkSpeed;
             float tempY = jumpValue;
             rb.velocity = new Vector2(tempX, tempY);
             Invoke("ResetJump", 0.3f);
-            isChargingJump = false;
             animator.SetBool("isChargingJump", false);
         }
 
@@ -81,53 +85,64 @@ public class NewPlayerController : MonoBehaviour
         {
             if (isGrounded)
             {
-                float maxValue = Mathf.Max(jumpValue, 10f);
+                float maxValue = Mathf.Max(jumpValue, 8f);
                 rb.velocity = new Vector2(moveInput * walkSpeed, maxValue);
                 jumpValue = 0f;
             }
             canJump = true;
-            isChargingJump = false;
             animator.SetBool("isChargingJump", false);
         }
+    }
 
-
-        float halfSpriteWidth = collider.bounds.size.x / 2;
-
-        Vector3 leftPosition = new Vector3(transform.position.x - halfSpriteWidth, transform.position.y, transform.position.z);
-        Vector3 rightPosition = new Vector3(transform.position.x + halfSpriteWidth, transform.position.y, transform.position.z);
-
-        RaycastHit2D centerHit = Physics2D.Raycast(transform.position, Vector2.down, 1.2f);
-        RaycastHit2D leftHit = Physics2D.Raycast(leftPosition, Vector2.down, 1.2f);
-        RaycastHit2D rightHit = Physics2D.Raycast(rightPosition, Vector2.down, 1.2f);
-
-        // Draw the ray in the Scene view
-
-        Debug.DrawRay(transform.position, Vector2.down * 1.2f, Color.red);
-        Debug.DrawRay(leftPosition, Vector2.down * 1.2f, Color.red);
-        Debug.DrawRay(rightPosition, Vector2.down * 1.2f, Color.red);
-
-        // Check if the ray hit anything (e.g., ground)
-        if (centerHit.collider != null || leftHit.collider != null || rightHit.collider != null)
-        {
-            rb.sharedMaterial = normalMaterial;
-        }
-        else
-        {
-            rb.sharedMaterial = bouncingMaterial;
-        }
+    bool IsGrounded()
+    {
+        return Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.4f), 0, groundMask);
     }
 
     void ResetJump()
     {
         canJump = false;
         jumpValue = 0f;
-        isChargingJump = false;
         animator.SetBool("isChargingJump", false);
+    }
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        // Check if player touches the ground
+        if (collision.gameObject.CompareTag("Slide"))
+        {
+            StartSliding(collision);
+        }
+        else if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        }
+    }
+
+    void StartSliding(Collision2D collision)
+    {
+        isSliding = true;
+
+        // Get the normal of the surface
+        Vector2 normal = collision.contacts[0].normal;
+
+        // The sliding direction is perpendicular to the normal (90 degrees offset)
+        Vector2 slideDirection = new Vector2(normal.y, -normal.x).normalized;
+
+        // Apply the sliding force
+        float slideForce = 10f; // Adjust the force as needed
+        rb.AddForce(slideDirection * slideForce, ForceMode2D.Force);
+    }
+
+    void StopSliding()
+    {
+        isSliding = false;
+
+        rb.velocity = Vector2.zero;
     }
 
     private void OnDrawGizmosSelected()
     {
-        //Gizmos.color = Color.green;
-        //Gizmos.DrawCube(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.4f));
+        Gizmos.color = Color.green;
+        Gizmos.DrawCube(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.2f));
     }
 }
