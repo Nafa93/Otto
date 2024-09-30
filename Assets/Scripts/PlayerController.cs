@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -95,13 +96,12 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(storedHorizontalInput * moveSpeed, currentJumpForce);
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Check if player touches the ground
-        //if (collision.gameObject.CompareTag("Ground"))
-        //{
-        //    isGrounded = true;
-        //}
+        if (collision.gameObject.CompareTag("Fish"))
+        {
+            SceneManager.LoadScene("MainMenu");
+        }
     }
 
     void OnCollisionExit2D(Collision2D collision)
