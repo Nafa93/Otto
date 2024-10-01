@@ -18800,8 +18800,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bca92e4ac0bc146bed53be9db9ff4f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 5
-  groundDistance: 1
+  walkSpeed: 6
+  groundDistance: -0.5
   groundMask:
     serializedVersion: 2
     m_Bits: 8
@@ -18810,8 +18810,9 @@ MonoBehaviour:
   normalMaterial: {fileID: 6200000, guid: 7c04908b33d0b454e82726623dbb6d55, type: 2}
   canJump: 1
   jumpValue: 0
+  jumpDistance: 8
   chargeValue: 10
-  maxJumpValue: 22
+  maxJumpValue: 25
   spriteRenderer: {fileID: 1632578434}
   animator: {fileID: 1632578433}
   collider: {fileID: 1632578427}

@@ -17,6 +17,7 @@ public class NewPlayerController : MonoBehaviour
     public PhysicsMaterial2D bouncingMaterial, normalMaterial;
     public bool canJump = true;
     public float jumpValue = 0f;
+    public float jumpDistance = 5f;
     public float chargeValue = 0.3f;
     public float maxJumpValue = 22f;
     public SpriteRenderer spriteRenderer;
@@ -50,17 +51,14 @@ public class NewPlayerController : MonoBehaviour
     }
     void Update()
     {
-        if (!isGrounded && isAirControl)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
-        }
+        
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Pause();
         }
 
-        CheckGrounded();
+        isGrounded = IsGrounded();
         animator.SetBool("isGrounded",isGrounded);
         animator.SetBool("isChargingJump",isChargingJump);
         animator.SetFloat("height", rb.velocity.y);
@@ -76,7 +74,7 @@ public class NewPlayerController : MonoBehaviour
             StopSliding();
         }
 
-        if (isGrounded && !isSliding)
+        if (isGrounded)
         {
             isAirControl = false;
             if (Input.GetKey(KeyCode.Space))
@@ -88,7 +86,7 @@ public class NewPlayerController : MonoBehaviour
                 rb.velocity = new Vector2(0, rb.velocity.y);
             }
 
-            if (!isChargingJump && isGrounded)
+            if (!isChargingJump)
             {
                 MoveOnGround();
             }
@@ -99,7 +97,10 @@ public class NewPlayerController : MonoBehaviour
             }    
         }
 
-        
+        if (!isGrounded && isAirControl)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
+        }
 
     }
 
@@ -109,7 +110,7 @@ public class NewPlayerController : MonoBehaviour
 
         float moveInput = Input.GetAxisRaw("Horizontal"); 
         
-        rb.velocity = new Vector2(moveInput * walkSpeed, jumpValue);
+        rb.velocity = new Vector2(moveInput * jumpDistance, jumpValue);
 
         jumpValue = 0f; 
         isChargingJump = false;
@@ -130,10 +131,9 @@ public class NewPlayerController : MonoBehaviour
         rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
         animator.SetFloat("movement", moveInput * walkSpeed);
     }
-    void CheckGrounded()
+    bool IsGrounded()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundDistance, groundMask);
-        isGrounded = hit.collider != null;
+        return Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + groundDistance), new Vector2(0.9f, 0.4f), 0, groundMask); ;
     }
     void OnCollisionEnter2D(Collision2D collision)
     {
@@ -243,11 +243,6 @@ public class NewPlayerController : MonoBehaviour
     //        animator.SetBool("isChargingJump", false);
     //    }
     //}
-
-    bool IsGrounded()
-    {
-        return Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.4f), 0, groundMask);
-    }
 
     void ResetJump()
     {
