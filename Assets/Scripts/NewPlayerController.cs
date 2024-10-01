@@ -30,18 +30,31 @@ public class NewPlayerController : MonoBehaviour
 
     public bool isPaused = false;
 
+    private AudioSource audioSource;
+    public AudioClip jump;
+
 
 
     void Start()
     {
         rb = gameObject.GetComponent<Rigidbody2D>();
-        spriteRenderer = rb.GetComponent<SpriteRenderer>();
-        animator = gameObject.GetComponent<Animator>();
-        collider = gameObject.GetComponent<Collider2D>();
         rb.freezeRotation = true;
+        
+        collider = gameObject.GetComponent<Collider2D>();
+        
+        spriteRenderer = rb.GetComponent<SpriteRenderer>();
+        
+        animator = gameObject.GetComponent<Animator>();
+
+        audioSource = gameObject.GetComponent<AudioSource>();
     }
     void Update()
     {
+        if (!isGrounded && isAirControl)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
+        }
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             Pause();
@@ -63,7 +76,7 @@ public class NewPlayerController : MonoBehaviour
             StopSliding();
         }
 
-        if (isGrounded)
+        if (isGrounded && !isSliding)
         {
             isAirControl = false;
             if (Input.GetKey(KeyCode.Space))
@@ -75,7 +88,7 @@ public class NewPlayerController : MonoBehaviour
                 rb.velocity = new Vector2(0, rb.velocity.y);
             }
 
-            if (!isChargingJump)
+            if (!isChargingJump && isGrounded)
             {
                 MoveOnGround();
             }
@@ -86,15 +99,14 @@ public class NewPlayerController : MonoBehaviour
             }    
         }
 
-        if (!isGrounded && isAirControl)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
-        }
+        
 
     }
 
     void Jump()
     {
+        audioSource.PlayOneShot(jump);
+
         float moveInput = Input.GetAxisRaw("Horizontal"); 
         
         rb.velocity = new Vector2(moveInput * walkSpeed, jumpValue);
