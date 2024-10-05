@@ -9,113 +9,137 @@ using static UnityEngine.UI.Image;
 public class NewPlayerController : MonoBehaviour
 {
     public float walkSpeed;
-    private float moveInput;
-    public bool isGrounded;
     private Rigidbody2D rb;
+    public float groundDistance = 0.1f;
     public LayerMask groundMask;
+    public GameObject pauseMenuUI; 
 
     public PhysicsMaterial2D bouncingMaterial, normalMaterial;
     public bool canJump = true;
     public float jumpValue = 0f;
+    public float jumpDistance = 5f;
+    public float chargeValue = 0.3f;
+    public float maxJumpValue = 22f;
     public SpriteRenderer spriteRenderer;
     public Animator animator;
     public new Collider2D collider;
+
+    public bool isGrounded;
     public bool isSliding;
+    public bool isChargingJump;
+    public bool isAirControl;
+
+    public bool isPaused = false;
+
+    private AudioSource audioSource;
+    public AudioClip jump;
+
+
 
     void Start()
     {
         rb = gameObject.GetComponent<Rigidbody2D>();
-        spriteRenderer = rb.GetComponent<SpriteRenderer>();
-        animator = gameObject.GetComponent<Animator>();
-        collider = gameObject.GetComponent<Collider2D>();
         rb.freezeRotation = true;
-    }
+        
+        collider = gameObject.GetComponent<Collider2D>();
+        
+        spriteRenderer = rb.GetComponent<SpriteRenderer>();
+        
+        animator = gameObject.GetComponent<Animator>();
 
+        audioSource = gameObject.GetComponent<AudioSource>();
+    }
     void Update()
     {
-        moveInput = Input.GetAxisRaw("Horizontal");
+        
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Pause();
+        }
 
         isGrounded = IsGrounded();
-
-        animator.SetFloat("movement", moveInput * walkSpeed);
-
+        animator.SetBool("isGrounded",isGrounded);
+        animator.SetBool("isChargingJump",isChargingJump);
         animator.SetFloat("height", rb.velocity.y);
 
-        animator.SetBool("isGrounded", isGrounded);
+        if (!isGrounded)
+        {
+            jumpValue = 0f;
+            isChargingJump = false;
+        }
 
         if (isGrounded && isSliding)
         {
             StopSliding();
         }
 
-        if (jumpValue == 0f && isGrounded && !isSliding)
+        if (isGrounded)
         {
-            rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
-
-            if (moveInput > 0)
+            isAirControl = false;
+            if (Input.GetKey(KeyCode.Space))
             {
-                spriteRenderer.flipX = false;
+                isChargingJump = true;
+                jumpValue += chargeValue * Time.deltaTime;
+                jumpValue = Mathf.Clamp(jumpValue, 0f, maxJumpValue);
+
+                rb.velocity = new Vector2(0, rb.velocity.y);
             }
-            else if (moveInput < 0)
+
+            if (!isChargingJump)
             {
-                spriteRenderer.flipX = true;
+                MoveOnGround();
             }
-        }
 
-        if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
-        {
-            jumpValue += 0.3f;
-            animator.SetBool("isChargingJump", true);
-        }
-
-        if (jumpValue >= 22f && isGrounded)
-        {
-            float tempX = moveInput * walkSpeed;
-            float tempY = jumpValue;
-            rb.velocity = new Vector2(tempX, tempY);
-            Invoke("ResetJump", 0.3f);
-            animator.SetBool("isChargingJump", false);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded && canJump)
-        {
-            rb.velocity = new Vector2(0f, rb.velocity.y);
-        }
-
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            if (isGrounded)
+            if (Input.GetKeyUp(KeyCode.Space) || jumpValue >= maxJumpValue)
             {
-                float maxValue = Mathf.Max(jumpValue, 8f);
-                rb.velocity = new Vector2(moveInput * walkSpeed, maxValue);
-                jumpValue = 0f;
-            }
-            canJump = true;
-            animator.SetBool("isChargingJump", false);
+                Jump();
+            }    
         }
+
+        if (!isGrounded && isAirControl)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y);
+        }
+
     }
 
+    void Jump()
+    {
+        audioSource.PlayOneShot(jump);
+
+        float moveInput = Input.GetAxisRaw("Horizontal"); 
+        
+        rb.velocity = new Vector2(moveInput * jumpDistance, jumpValue);
+
+        jumpValue = 0f; 
+        isChargingJump = false;
+        isAirControl = true;
+    }
+
+    void MoveOnGround()
+    {
+        float moveInput = Input.GetAxis("Horizontal");
+        if (moveInput > 0)
+        {
+            spriteRenderer.flipX = false;
+        }
+        else if (moveInput < 0)
+        {
+            spriteRenderer.flipX = true;
+        }
+        rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
+        animator.SetFloat("movement", moveInput * walkSpeed);
+    }
     bool IsGrounded()
     {
-        return Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.05f), new Vector2(0.9f, 0.4f), 0, groundMask);
-    }
-
-    void ResetJump()
-    {
-        canJump = false;
-        jumpValue = 0f;
-        animator.SetBool("isChargingJump", false);
+        return Physics2D.OverlapBox(new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + groundDistance), new Vector2(0.9f, 0.4f), 0, groundMask); ;
     }
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Check if player touches the ground
         if (collision.gameObject.CompareTag("Slide"))
         {
             StartSliding(collision);
-        }
-        else if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
         }
     }
 
@@ -148,6 +172,85 @@ public class NewPlayerController : MonoBehaviour
 
         rb.velocity = Vector2.zero;
     }
+    void Pause()
+    {
+        pauseMenuUI.SetActive(true);  
+        Time.timeScale = 0f;           
+        isPaused = true;
+    }
+
+
+    //void Update()
+    //{
+    //    moveInput = Input.GetAxisRaw("Horizontal");
+
+    //    isGrounded = IsGrounded();
+
+    //    animator.SetFloat("movement", moveInput * walkSpeed);
+
+    //    animator.SetFloat("height", rb.velocity.y);
+
+    //    animator.SetBool("isGrounded", isGrounded);
+
+    //    if (isGrounded && isSliding)
+    //    {
+    //        StopSliding();
+    //    }
+
+    //    if (jumpValue == 0f && isGrounded && !isSliding)
+    //    {
+    //        rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
+
+    //        if (moveInput > 0)
+    //        {
+    //            spriteRenderer.flipX = false;
+    //        }
+    //        else if (moveInput < 0)
+    //        {
+    //            spriteRenderer.flipX = true;
+    //        }
+    //    }
+
+    //    if (Input.GetKey(KeyCode.Space) && isGrounded && canJump)
+    //    {
+    //        jumpValue += 0.3f;
+    //        animator.SetBool("isChargingJump", true);
+    //    }
+
+    //    if (jumpValue >= 22f && isGrounded)
+    //    {
+    //        float tempX = moveInput * walkSpeed;
+    //        float tempY = jumpValue;
+    //        rb.velocity = new Vector2(tempX, tempY);
+    //        Invoke("ResetJump", 0.3f);
+    //        animator.SetBool("isChargingJump", false);
+    //    }
+
+    //    if (Input.GetKeyDown(KeyCode.Space) && isGrounded && canJump)
+    //    {
+    //        rb.velocity = new Vector2(0f, rb.velocity.y);
+    //    }
+
+    //    if (Input.GetKeyUp(KeyCode.Space))
+    //    {
+    //        if (isGrounded)
+    //        {
+    //            float maxValue = Mathf.Max(jumpValue, 8f);
+    //            rb.velocity = new Vector2(moveInput * walkSpeed, maxValue);
+    //            jumpValue = 0f;
+    //        }
+    //        canJump = true;
+    //        animator.SetBool("isChargingJump", false);
+    //    }
+    //}
+
+    void ResetJump()
+    {
+        canJump = false;
+        jumpValue = 0f;
+        animator.SetBool("isChargingJump", false);
+    }
+    
 
     private void OnDrawGizmosSelected()
     {

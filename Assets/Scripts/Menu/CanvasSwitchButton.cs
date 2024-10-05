@@ -6,12 +6,11 @@ public class CanvasSwitchButton : MonoBehaviour
 {
     public Canvas newCanvas;
     public Canvas previousCanvas;
-
-
     public void Switch()
     {
+        Time.timeScale = 1f;
         previousCanvas.gameObject.SetActive(false);
-        // Activar el primer canvas y desactivar el segundo
+        if(newCanvas != null)
         newCanvas.gameObject.SetActive(true);
     }
 }
