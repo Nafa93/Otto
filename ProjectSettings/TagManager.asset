@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ground
   - Wall
+  - Slide
+  - Fish
   layers:
   - Default
   - TransparentFX
@@ -13,7 +15,7 @@ TagManager:
   - Ground
   - Water
   - UI
-  - 
+  - Slides
   - 
   - 
   - 
