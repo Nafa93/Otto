@@ -2034,7 +2034,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 9b394cf2f35e64b4390812bc164c7036, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -4
+      value: -3.349
       objectReference: {fileID: 0}
     - target: {fileID: 7878350319992209165, guid: 9b394cf2f35e64b4390812bc164c7036, type: 3}
       propertyPath: m_LocalPosition.z
@@ -18165,11 +18165,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 128808711}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1547537419 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8745271302649409055, guid: ca1d2bb62fd363e49a83815739cf7bb3, type: 3}
-  m_PrefabInstance: {fileID: 1781920821}
-  m_PrefabAsset: {fileID: 0}
 --- !u!223 &1547537422 stripped
 Canvas:
   m_CorrespondingSourceObject: {fileID: 3656281305813159207, guid: ca1d2bb62fd363e49a83815739cf7bb3, type: 3}
@@ -18460,7 +18455,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7878350319992209165, guid: 9b394cf2f35e64b4390812bc164c7036, type: 3}
   m_PrefabInstance: {fileID: 95397046}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1632578435
+--- !u!114 &1632578432
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -18472,48 +18467,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0056303cb7bc41a46a82aa147e40cca4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-<<<<<<< HEAD
   rb: {fileID: 1632578426}
   groundMask:
     serializedVersion: 2
     m_Bits: 8
-  animator: {fileID: 1632578436}
-  spriteRenderer: {fileID: 0}
-  walkSpeed: 8
-  jumpSpeed: 1.1
-  slideSpeed: 10
---- !u!95 &1632578436 stripped
-=======
-  walkSpeed: 6
-  groundDistance: -0.5
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 8
-  pauseMenuUI: {fileID: 1547537419}
-  bouncingMaterial: {fileID: 6200000, guid: 89b185f2ba346b346a6c57ff44c92a5d, type: 2}
-  normalMaterial: {fileID: 6200000, guid: 7c04908b33d0b454e82726623dbb6d55, type: 2}
-  canJump: 1
-  jumpValue: 0
-  jumpDistance: 8
-  chargeValue: 10
-  maxJumpValue: 25
-  spriteRenderer: {fileID: 1632578434}
   animator: {fileID: 1632578433}
-  collider: {fileID: 1632578427}
-  isGrounded: 0
-  isSliding: 0
-  isChargingJump: 0
-  isAirControl: 0
-  isPaused: 0
-  jump: {fileID: 8300000, guid: ee565e8b1961b66448af982db15ab91a, type: 3}
+  spriteRenderer: {fileID: 1632578434}
+  walkSpeed: 6
+  jumpSpeed: 0
+  slideSpeed: 0
 --- !u!95 &1632578433 stripped
->>>>>>> 2e5dcba4757a3fee67a4486ad2673a8d86f5b4be
 Animator:
   m_CorrespondingSourceObject: {fileID: 1160356261127867848, guid: 9b394cf2f35e64b4390812bc164c7036, type: 3}
   m_PrefabInstance: {fileID: 95397046}
   m_PrefabAsset: {fileID: 0}
-<<<<<<< HEAD
-=======
 --- !u!212 &1632578434 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 3626916397498700004, guid: 9b394cf2f35e64b4390812bc164c7036, type: 3}
@@ -19215,7 +19182,6 @@ MonoBehaviour:
   audioSource: {fileID: 1932942220}
   onClick: {fileID: 8300000, guid: d1666065576e4bc448d945a542d18fdf, type: 3}
   onHover: {fileID: 8300000, guid: 1be41561595bb584192e9d19634321a7, type: 3}
->>>>>>> 2e5dcba4757a3fee67a4486ad2673a8d86f5b4be
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
