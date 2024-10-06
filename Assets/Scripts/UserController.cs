@@ -9,6 +9,8 @@ public class UserController : MonoBehaviour
     public LayerMask groundMask;
     public Animator animator;
     public SpriteRenderer spriteRenderer;
+    public AudioSource audioSource;
+    public AudioClip jump;
     public float walkSpeed;
     public float jumpSpeed;
     public float slideSpeed;
@@ -80,7 +82,7 @@ public class UserController : MonoBehaviour
     {
         Gizmos.color = Color.green;
         Gizmos.DrawCube(
-            new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.1f),
+            new Vector2(gameObject.transform.position.x, gameObject.transform.position.y - 0.6f),
             groundOverlapBox
         );
     }
@@ -109,6 +111,8 @@ public class UserController : MonoBehaviour
     private void Jump()
     {
         animator.SetBool("isChargingJump", false);
+
+        audioSource.PlayOneShot(jump);
 
         rb.velocity = new Vector2(horizontalMovement * walkSpeed, jumpPower * jumpSpeed);
     }
@@ -139,7 +143,7 @@ public class UserController : MonoBehaviour
     private bool IsGrounded()
     {
         return Physics2D.OverlapBox(
-            new Vector2(gameObject.transform.position.x, gameObject.transform.position.y + 0.1f),
+            new Vector2(gameObject.transform.position.x, gameObject.transform.position.y - 0.6f),
             groundOverlapBox,
             0f,
             groundMask
